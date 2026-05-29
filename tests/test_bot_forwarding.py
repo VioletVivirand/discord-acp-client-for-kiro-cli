@@ -12,7 +12,7 @@ from discord_acp_kiro.config import Config
 
 @pytest.fixture
 def bot():
-    cfg = Config("tok", "/tmp", 300, 300, "kiro-cli", "bot.log")
+    cfg = Config("tok", "/tmp", 300, "kiro-cli", "bot.log")
     b = KiroAcpBot(cfg)
     b.agent_manager = MagicMock()
     b.agent_manager.get_or_create = AsyncMock()

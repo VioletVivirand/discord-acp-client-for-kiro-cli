@@ -12,7 +12,6 @@ class Config:
     discord_token: str
     kiro_session_cwd: str
     kiro_idle_timeout_seconds: int
-    login_timeout_seconds: int
     kiro_cli_bin: str
     log_file: str
 
@@ -32,7 +31,6 @@ def load_config() -> Config:
         discord_token=token,
         kiro_session_cwd=os.environ.get("KIRO_SESSION_CWD") or os.getcwd(),
         kiro_idle_timeout_seconds=int(os.environ.get("KIRO_IDLE_TIMEOUT_SECONDS", "300")),
-        login_timeout_seconds=int(os.environ.get("LOGIN_TIMEOUT_SECONDS", "300")),
         kiro_cli_bin=os.environ.get("KIRO_CLI_BIN", "kiro-cli"),
         log_file=os.environ.get("LOG_FILE", "bot.log"),
     )

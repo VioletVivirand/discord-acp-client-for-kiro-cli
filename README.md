@@ -3,8 +3,9 @@
 A Discord bot that lets you drive [Kiro CLI](https://kiro.dev) from anywhere through Discord.
 Each top-level channel message starts a new Kiro session in a freshly created thread; replies
 in that thread resume the same session. The bot speaks JSON-RPC 2.0 (NDJSON) over stdio to a
-`kiro-cli acp` subprocess and handles authentication (including remote device-flow login)
-through Discord UI components.
+`kiro-cli acp` subprocess. Kiro must be authenticated on the host (via `kiro-cli login`);
+the bot detects an unauthenticated host and offers a **Retry** button so you can resend
+your message once login is complete.
 
 ## Architecture
 
@@ -13,7 +14,6 @@ flowchart LR
     User[Discord User] -->|message| Bot[Discord Bot<br/>discord_acp_kiro.bot]
     Bot -->|whoami| Auth[auth.py]
     Auth -->|kiro-cli whoami| KCLI1[kiro-cli whoami]
-    Auth -->|kiro-cli login --use-device-flow ...| KCLI2[kiro-cli login subprocess]
     Bot -->|get/spawn| AM[AgentManager<br/>thread_id → AgentSession]
     AM -->|stdin/stdout JSON-RPC| KACP[kiro-cli acp subprocess]
     KACP -->|AgentMessageChunk/ToolCall/TurnEnd| AM
@@ -37,7 +37,6 @@ Copy `.env.example` to `.env` and fill in the values:
 | `KIRO_SESSION_CWD` | bot CWD | Working directory for Kiro sessions |
 | `KIRO_CLI_BIN` | `kiro-cli` | Path to the `kiro-cli` binary |
 | `KIRO_IDLE_TIMEOUT_SECONDS` | `300` | Idle timeout before a per-thread subprocess is reaped |
-| `LOGIN_TIMEOUT_SECONDS` | `300` | Device-flow login timeout |
 | `LOG_FILE` | `bot.log` | Rotating log file path |
 
 ## Discord application setup
@@ -64,16 +63,19 @@ uv run discord-acp-kiro-bot
 uv run pytest
 ```
 
-## Authentication walkthrough
+## Authentication
+
+Kiro must be authenticated on the **host** running the bot. The bot does not perform
+login itself — `kiro-cli login` opens a browser on the host and never exposes the
+verification URL, so it can't be driven remotely.
 
 1. Send a message in a guild text channel.
-2. If Kiro is not authenticated, the bot replies with an **Authenticate** button.
-3. Clicking it opens a modal asking for your **Identity Provider URL** and **Region**
-   (defaults to `us-east-1`).
-4. On submit, the bot runs `kiro-cli login --use-device-flow` and posts the verification
-   code + URL with a **Cancel** button.
-5. Complete the login in your browser. On success the bot replies "Authenticated successfully."
-   and forwards your original message to Kiro.
+2. If Kiro is not authenticated, the bot replies that the host needs login, with a
+   **Retry** button.
+3. On the host, run `kiro-cli login` (or `kiro-cli login --use-device-flow`) and complete
+   the browser step.
+4. Click **Retry**. The bot re-checks `whoami` and, if now authenticated, resends your
+   original message to Kiro — no need to retype it.
 
 ## Troubleshooting
 

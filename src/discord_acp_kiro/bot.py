@@ -12,7 +12,7 @@ from .agent_session import SessionNotFound
 from .config import Config, load_config
 from .logging_setup import setup_logging
 from .render import PromptRenderer
-from .ui import AuthView
+from .ui import RetryView
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +44,9 @@ class KiroAcpBot(discord.Client):
             return
         if not await auth.whoami(self.config.kiro_cli_bin):
             await message.channel.send(
-                "You need to authenticate with Kiro first.",
-                view=AuthView(self, message),
+                "Kiro isn't authenticated on the host. An operator must run "
+                "`kiro-cli login` there, then click Retry to resend your message.",
+                view=RetryView(self, message),
             )
             return
         try:
