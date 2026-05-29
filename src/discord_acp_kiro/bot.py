@@ -72,7 +72,8 @@ class KiroAcpBot(discord.Client):
             thread = await message.create_thread(name=session.session_id)
             self.agent_manager.rekey(message.id, thread.id)
             renderer = PromptRenderer(thread)
-            await self.agent_manager.run_prompt(thread.id, message.content, renderer.callbacks())
+            async with thread.typing():
+                await self.agent_manager.run_prompt(thread.id, message.content, renderer.callbacks())
         except (JsonRpcError, ConnectionError) as exc:
             await self._on_turn_error(message.channel, message.id, exc)
 
@@ -90,7 +91,8 @@ class KiroAcpBot(discord.Client):
             return
         renderer = PromptRenderer(thread)
         try:
-            await self.agent_manager.run_prompt(thread.id, message.content, renderer.callbacks())
+            async with thread.typing():
+                await self.agent_manager.run_prompt(thread.id, message.content, renderer.callbacks())
         except (JsonRpcError, ConnectionError) as exc:
             await self._on_turn_error(thread, thread.id, exc)
 
