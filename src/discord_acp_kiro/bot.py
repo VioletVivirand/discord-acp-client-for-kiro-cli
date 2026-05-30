@@ -24,7 +24,8 @@ class KiroAcpBot(discord.Client):
         super().__init__(intents=intents, **kwargs)
         self.config = config
         self.agent_manager = AgentManager(
-            config.kiro_session_cwd, config.kiro_cli_bin, config.kiro_idle_timeout_seconds
+            config.kiro_session_cwd, config.kiro_cli_bin,
+            config.kiro_idle_timeout_seconds, config.kiro_model,
         )
 
     async def setup_hook(self) -> None:

@@ -15,11 +15,21 @@ class FakeAgent:
         self.client = client
         self.prompt_updates: list[dict] = []
         self.load_fails = False
+        self.set_model_fails = False
+        self.model_params: list[dict] = []
         client.on_request("initialize", lambda p: {"protocolVersion": 1})
         client.on_request("session/new", lambda p: {"sessionId": "sess-123"})
         client.on_request("session/load", self._load)
+        client.on_request("session/set_model", self._set_model)
         client.on_request("session/prompt", self._prompt)
         client.on_notification("session/cancel", lambda p: None)
+
+    def _set_model(self, params):
+        if self.set_model_fails:
+            from discord_acp_kiro.acp_client import JsonRpcError
+            raise JsonRpcError(-32000, "unknown model")
+        self.model_params.append(params)
+        return {}
 
     def _load(self, params):
         if self.load_fails:
@@ -64,6 +74,34 @@ async def test_load_session_not_found(session_with_agent):
     agent.load_fails = True
     with pytest.raises(SessionNotFound):
         await session.load_session("missing", "/tmp")
+
+
+async def test_set_model_on_new_session(session_with_agent):
+    session, agent = session_with_agent
+    session._model = "claude-sonnet-4.5"
+    await session.new_session("/tmp")
+    assert agent.model_params == [{"sessionId": "sess-123", "modelId": "claude-sonnet-4.5"}]
+
+
+async def test_set_model_on_load_session(session_with_agent):
+    session, agent = session_with_agent
+    session._model = "claude-sonnet-4.5"
+    await session.load_session("sess-xyz", "/tmp")
+    assert agent.model_params == [{"sessionId": "sess-xyz", "modelId": "claude-sonnet-4.5"}]
+
+
+async def test_set_model_failure_is_tolerated(session_with_agent):
+    session, agent = session_with_agent
+    session._model = "bogus"
+    agent.set_model_fails = True
+    sid = await session.new_session("/tmp")  # no raise
+    assert sid == "sess-123"
+
+
+async def test_no_set_model_when_unset(session_with_agent):
+    session, agent = session_with_agent
+    await session.new_session("/tmp")
+    assert agent.model_params == []
 
 
 async def test_prompt_invokes_callbacks(session_with_agent):

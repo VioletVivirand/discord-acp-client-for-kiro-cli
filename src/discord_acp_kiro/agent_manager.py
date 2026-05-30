@@ -11,10 +11,11 @@ logger = logging.getLogger(__name__)
 
 
 class AgentManager:
-    def __init__(self, cwd: str, kiro_cli_bin: str = "kiro-cli", idle_timeout: int = 300):
+    def __init__(self, cwd: str, kiro_cli_bin: str = "kiro-cli", idle_timeout: int = 300, kiro_model: str = "auto"):
         self._cwd = cwd
         self._bin = kiro_cli_bin
         self._idle_timeout = idle_timeout
+        self._model = kiro_model
         self._sessions: dict[int, AgentSession] = {}
         self._locks: dict[int, asyncio.Lock] = {}
         self._reaper_task: asyncio.Task | None = None
@@ -23,7 +24,7 @@ class AgentManager:
         return self._locks.setdefault(thread_id, asyncio.Lock())
 
     def _new_session(self) -> AgentSession:
-        return AgentSession(self._bin)
+        return AgentSession(self._bin, self._model)
 
     async def get_or_create(self, thread_id: int, *, existing_session_id: str | None) -> AgentSession:
         async with self._lock(thread_id):

@@ -102,3 +102,9 @@ async def test_rekey(manager):
     manager.rekey(100, 200)
     assert manager._sessions[200] is s
     assert 100 not in manager._sessions
+
+
+def test_new_session_receives_model():
+    m = AgentManager("/tmp", kiro_model="claude-sonnet-4.5")
+    session = m._new_session()
+    assert session._model == "claude-sonnet-4.5"

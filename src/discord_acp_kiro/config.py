@@ -13,6 +13,7 @@ class Config:
     kiro_session_cwd: str
     kiro_idle_timeout_seconds: int
     kiro_cli_bin: str
+    kiro_model: str
     log_file: str
 
 
@@ -32,5 +33,6 @@ def load_config() -> Config:
         kiro_session_cwd=os.environ.get("KIRO_SESSION_CWD") or os.getcwd(),
         kiro_idle_timeout_seconds=int(os.environ.get("KIRO_IDLE_TIMEOUT_SECONDS", "300")),
         kiro_cli_bin=os.environ.get("KIRO_CLI_BIN", "kiro-cli"),
+        kiro_model=os.environ.get("KIRO_MODEL", "auto"),
         log_file=os.environ.get("LOG_FILE", "bot.log"),
     )

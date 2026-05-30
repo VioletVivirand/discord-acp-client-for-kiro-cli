@@ -12,6 +12,7 @@ def clean_env(monkeypatch):
         "KIRO_SESSION_CWD",
         "KIRO_IDLE_TIMEOUT_SECONDS",
         "KIRO_CLI_BIN",
+        "KIRO_MODEL",
         "LOG_FILE",
     ):
         monkeypatch.delenv(key, raising=False)
@@ -24,6 +25,7 @@ def test_defaults_applied(monkeypatch):
     assert cfg.kiro_session_cwd == os.getcwd()
     assert cfg.kiro_idle_timeout_seconds == 300
     assert cfg.kiro_cli_bin == "kiro-cli"
+    assert cfg.kiro_model == "auto"
     assert cfg.log_file == "bot.log"
 
 
@@ -32,11 +34,13 @@ def test_values_overridden(monkeypatch):
     monkeypatch.setenv("KIRO_SESSION_CWD", "/tmp/work")
     monkeypatch.setenv("KIRO_IDLE_TIMEOUT_SECONDS", "60")
     monkeypatch.setenv("KIRO_CLI_BIN", "/usr/bin/kiro-cli")
+    monkeypatch.setenv("KIRO_MODEL", "claude-sonnet-4.5")
     monkeypatch.setenv("LOG_FILE", "/tmp/x.log")
     cfg = load_config()
     assert cfg.kiro_session_cwd == "/tmp/work"
     assert cfg.kiro_idle_timeout_seconds == 60
     assert cfg.kiro_cli_bin == "/usr/bin/kiro-cli"
+    assert cfg.kiro_model == "claude-sonnet-4.5"
     assert cfg.log_file == "/tmp/x.log"
 
 

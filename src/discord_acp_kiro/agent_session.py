@@ -30,8 +30,9 @@ async def _maybe_await(result: Any) -> None:
 
 
 class AgentSession:
-    def __init__(self, kiro_cli_bin: str = "kiro-cli"):
+    def __init__(self, kiro_cli_bin: str = "kiro-cli", model: str | None = None):
         self._bin = kiro_cli_bin
+        self._model = model
         self._proc: asyncio.subprocess.Process | None = None
         self._client: JsonRpcClient | None = None
         self.session_id: str | None = None
@@ -74,6 +75,7 @@ class AgentSession:
         self._bump()
         result = await self._client.request("session/new", {"cwd": cwd, "mcpServers": []})
         self.session_id = result["sessionId"]
+        await self._set_model()
         return self.session_id
 
     async def load_session(self, session_id: str, cwd: str) -> None:
@@ -85,6 +87,15 @@ class AgentSession:
                 raise SessionNotFound(session_id) from exc
             raise
         self.session_id = session_id
+        await self._set_model()
+
+    async def _set_model(self) -> None:
+        if not self._model:
+            return
+        try:
+            await self._client.request("session/set_model", {"sessionId": self.session_id, "modelId": self._model})
+        except JsonRpcError:
+            logger.warning("Failed to set model %r for session %s", self._model, self.session_id, exc_info=True)
 
     async def prompt(self, text: str, callbacks: PromptCallbacks) -> None:
         self._bump()
