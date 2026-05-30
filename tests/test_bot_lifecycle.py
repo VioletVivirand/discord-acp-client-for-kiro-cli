@@ -11,7 +11,7 @@ from discord_acp_kiro.config import Config
 
 @pytest.fixture
 def bot(monkeypatch):
-    cfg = Config("tok", "/tmp", 300, "kiro-cli", "auto", "bot.log")
+    cfg = Config("tok", "/tmp", 300, "kiro-cli", "auto", None, "bot.log")
     b = KiroAcpBot(cfg)
     monkeypatch.setattr(bot_module.auth, "whoami", AsyncMock(return_value=True))
     return b

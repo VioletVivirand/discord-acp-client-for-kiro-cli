@@ -37,6 +37,7 @@ Copy `.env.example` to `.env` and fill in the values:
 | `KIRO_SESSION_CWD` | bot CWD | Working directory for Kiro sessions |
 | `KIRO_CLI_BIN` | `kiro-cli` | Path to the `kiro-cli` binary |
 | `KIRO_MODEL` | `auto` | Default model for Kiro sessions (set per-session via ACP `session/set_model`; see `kiro-cli chat --list-models`) |
+| `KIRO_AGENT` | (none) | Agent/persona to launch sessions with (`kiro-cli acp --agent`); defines the system prompt and tools. Create one with `kiro-cli agent create` |
 | `KIRO_IDLE_TIMEOUT_SECONDS` | `300` | Idle timeout before a per-thread subprocess is reaped |
 | `LOG_FILE` | `bot.log` | Rotating log file path |
 

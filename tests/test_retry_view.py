@@ -6,7 +6,7 @@ from discord_acp_kiro.config import Config
 
 def _bot(authed: bool):
     bot = MagicMock()
-    bot.config = Config("tok", "/tmp", 300, "kiro-cli", "auto", "bot.log")
+    bot.config = Config("tok", "/tmp", 300, "kiro-cli", "auto", None, "bot.log")
     bot._handle_authed_message = AsyncMock()
     return bot
 

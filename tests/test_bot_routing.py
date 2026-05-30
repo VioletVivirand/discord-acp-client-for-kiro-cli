@@ -15,7 +15,7 @@ def authed(monkeypatch):
 
 @pytest.fixture
 def bot():
-    cfg = Config("tok", "/tmp", 300, "kiro-cli", "auto", "bot.log")
+    cfg = Config("tok", "/tmp", 300, "kiro-cli", "auto", None, "bot.log")
     b = KiroAcpBot(cfg)
     # Give the bot a known identity
     b._connection = MagicMock()

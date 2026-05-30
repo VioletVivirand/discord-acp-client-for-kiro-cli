@@ -30,9 +30,10 @@ async def _maybe_await(result: Any) -> None:
 
 
 class AgentSession:
-    def __init__(self, kiro_cli_bin: str = "kiro-cli", model: str | None = None):
+    def __init__(self, kiro_cli_bin: str = "kiro-cli", model: str | None = None, agent: str | None = None):
         self._bin = kiro_cli_bin
         self._model = model
+        self._agent = agent
         self._proc: asyncio.subprocess.Process | None = None
         self._client: JsonRpcClient | None = None
         self.session_id: str | None = None
@@ -40,8 +41,11 @@ class AgentSession:
         self.current_turn_task: asyncio.Task | None = None
 
     async def start(self) -> None:
+        args = [self._bin, "acp"]
+        if self._agent:
+            args += ["--agent", self._agent]
         self._proc = await asyncio.create_subprocess_exec(
-            self._bin, "acp",
+            *args,
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
