@@ -8,7 +8,7 @@
 # drive Kiro to run arbitrary commands, so it never runs as root and ships
 # with no Docker socket or host-secret access.
 
-FROM ubuntu:24.04
+FROM ubuntu:26.04
 
 # --- Build-time configuration -------------------------------------------------
 ARG UID=1000
@@ -38,7 +38,7 @@ ENV LANG=en_US.UTF-8 \
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
 # --- Non-root "bot" user ------------------------------------------------------
-# ubuntu:24.04 ships a default "ubuntu" user at UID 1000; remove it so we can
+# ubuntu:26.04 ships a default "ubuntu" user at UID 1000; remove it so we can
 # claim UID/GID 1000 for "bot".
 RUN userdel -r ubuntu 2>/dev/null || true; \
     groupadd -g "${GID}" bot 2>/dev/null || groupmod -n bot "$(getent group "${GID}" | cut -d: -f1)"; \

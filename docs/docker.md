@@ -7,7 +7,7 @@ escalation, and mounts **no** Docker socket or host secrets.
 
 ## What's in the image
 
-- **Base:** `ubuntu:24.04`.
+- **Base:** `ubuntu:26.04`.
 - **User:** non-root `bot` (UID/GID `1000`, configurable via build args).
 - **Python:** 3.14, provided by [`uv`](https://docs.astral.sh/uv/) (independent of the OS Python).
 - **`kiro-cli`:** installed to `~/.local/bin` (architecture-aware: x86_64 / aarch64).
@@ -16,16 +16,63 @@ escalation, and mounts **no** Docker socket or host secrets.
 
 ## Quick start
 
+The commands below are plain `docker` invocations — run them from the repo root.
+A [`docker compose`](#using-docker-compose) alternative is documented at the end.
+
+**1. Configure** — copy the env template and set your token:
+
 ```bash
 cp .env.example .env          # set DISCORD_TOKEN
-./run.sh build                # build the image
-./run.sh up                   # start the bot (detached) + create volumes
-./run.sh login                # one-time Kiro authentication (see below)
-./run.sh logs                 # follow logs
 ```
 
-`run.sh` honours these env overrides: `IMAGE`, `CONTAINER`, `VOL_HOME`,
-`VOL_WS`, `ENV_FILE`.
+**2. Build the image:**
+
+```bash
+docker build -t discord-acp-kiro:latest .
+```
+
+**3. Create the named volumes** (auth/config/sessions + workspace):
+
+```bash
+docker volume create kiro-acp-home
+docker volume create kiro-acp-workspace
+```
+
+**4. Start the bot** (detached, locked down, auto-restart):
+
+```bash
+docker run -d \
+    --name discord-acp-kiro \
+    --env-file .env \
+    --restart unless-stopped \
+    --security-opt no-new-privileges \
+    --cap-drop ALL \
+    -v kiro-acp-home:/home/bot/.kiro \
+    -v kiro-acp-workspace:/workspace \
+    discord-acp-kiro:latest
+```
+
+**5. Authenticate Kiro** (one-time, see [below](#authentication-one-time-persists-on-a-volume)):
+
+```bash
+docker exec -it discord-acp-kiro kiro-cli login
+```
+
+**6. Follow the logs:**
+
+```bash
+docker logs -f discord-acp-kiro
+```
+
+### Managing the container
+
+```bash
+docker exec -it discord-acp-kiro bash -l   # interactive shell
+docker stop discord-acp-kiro               # stop
+docker start discord-acp-kiro              # start again
+docker restart discord-acp-kiro            # restart
+docker rm -f discord-acp-kiro              # remove
+```
 
 ## Authentication (one-time, persists on a volume)
 
@@ -36,7 +83,7 @@ Use the **device flow** — it shows a URL and a one-time code; no browser is
 needed inside the container:
 
 ```bash
-./run.sh login                # == docker exec -it <container> kiro-cli login
+docker exec -it discord-acp-kiro kiro-cli login
 ```
 
 1. Pick a sign-in method (Builder ID, Google, GitHub, or your organization).
@@ -61,7 +108,7 @@ The image ships two package managers:
 
 - **Homebrew** (no sudo) — preferred for the runtime user and agents:
   ```bash
-  ./run.sh shell
+  docker exec -it discord-acp-kiro bash -l
   brew install ripgrep jq
   ```
   Brew packages persist only for the container's lifetime (they live outside the
@@ -104,3 +151,16 @@ docker build --build-arg UID=1001 --build-arg GID=1001 \
 
 For multi-architecture builds, `docker buildx` sets `TARGETARCH` automatically
 (`amd64` → x86_64, `arm64` → aarch64).
+
+## Using docker compose
+
+`docker-compose.yml` wraps the same image, volumes, and security options:
+
+```bash
+cp .env.example .env                       # set DISCORD_TOKEN
+docker compose build
+docker compose up -d
+docker compose exec bot kiro-cli login     # one-time Kiro auth
+docker compose logs -f
+docker compose down                        # stop & remove
+```

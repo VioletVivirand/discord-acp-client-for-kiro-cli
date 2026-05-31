@@ -1,4 +1,4 @@
-# Mirrors ./run.sh. Usage:
+# Compose wrapper for the bot image. Usage:
 #   cp .env.example .env            # set DISCORD_TOKEN
 #   docker compose build
 #   docker compose up -d

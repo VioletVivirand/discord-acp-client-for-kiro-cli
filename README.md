@@ -88,9 +88,14 @@ root). Kiro auth and the working directory persist on named volumes.
 
 ```bash
 cp .env.example .env   # set DISCORD_TOKEN
-./run.sh build
-./run.sh up
-./run.sh login         # one-time Kiro device-flow auth (URL + code)
+docker build -t discord-acp-kiro:latest .
+docker volume create kiro-acp-home
+docker volume create kiro-acp-workspace
+docker run -d --name discord-acp-kiro --env-file .env \
+    --restart unless-stopped --security-opt no-new-privileges --cap-drop ALL \
+    -v kiro-acp-home:/home/bot/.kiro -v kiro-acp-workspace:/workspace \
+    discord-acp-kiro:latest
+docker exec -it discord-acp-kiro kiro-cli login   # one-time device-flow auth
 ```
 
 See [docs/docker.md](docs/docker.md) for authentication, package management,
