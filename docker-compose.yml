@@ -15,9 +15,7 @@ services:
     cap_drop:
       - ALL
     volumes:
-      - kiro-acp-home:/home/bot/.kiro
-      - kiro-acp-workspace:/workspace
+      - kiro-acp-data:/home/bot/.kiro
 
 volumes:
-  kiro-acp-home:
-  kiro-acp-workspace:
+  kiro-acp-data:

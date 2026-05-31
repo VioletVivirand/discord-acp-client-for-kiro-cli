@@ -31,11 +31,10 @@ cp .env.example .env          # set DISCORD_TOKEN
 docker build -t discord-acp-kiro:latest .
 ```
 
-**3. Create the named volumes** (auth/config/sessions + workspace):
+**3. Create the named volume** (auth/config/sessions + workspace):
 
 ```bash
-docker volume create kiro-acp-home
-docker volume create kiro-acp-workspace
+docker volume create kiro-acp-data
 ```
 
 **4. Start the bot** (detached, locked down, auto-restart):
@@ -47,8 +46,7 @@ docker run -d \
     --restart unless-stopped \
     --security-opt no-new-privileges \
     --cap-drop ALL \
-    -v kiro-acp-home:/home/bot/.kiro \
-    -v kiro-acp-workspace:/workspace \
+    -v kiro-acp-data:/home/bot/.kiro \
     discord-acp-kiro:latest
 ```
 
@@ -77,7 +75,7 @@ docker rm -f discord-acp-kiro              # remove
 ## Authentication (one-time, persists on a volume)
 
 Kiro must be authenticated inside the container. The credential store lives in
-the `kiro-acp-home` volume, so you log in **once** and it survives restarts.
+the `kiro-acp-data` volume, so you log in **once** and it survives restarts.
 
 Use the **device flow** — it shows a URL and a one-time code; no browser is
 needed inside the container:
@@ -120,15 +118,15 @@ The image ships two package managers:
 
 ## Persistence
 
-Two named volumes:
+One named volume holds everything:
 
 | Volume | Mount | Contents |
 | --- | --- | --- |
-| `kiro-acp-home` | `/home/bot/.kiro` | Kiro auth (`share/kiro-cli/data.sqlite3`), settings, agents, sessions, `bot.log` |
-| `kiro-acp-workspace` | `/workspace` | `KIRO_SESSION_CWD` — files Kiro reads/writes |
+| `kiro-acp-data` | `/home/bot/.kiro` | Kiro auth (`share/kiro-cli/data.sqlite3`), settings, agents, sessions, `bot.log`, and the `workspace/` subdirectory (`KIRO_SESSION_CWD` — files Kiro reads/writes) |
 
-`XDG_DATA_HOME` is set to `/home/bot/.kiro/share` inside the image so Kiro's
-credential store nests under the single home volume.
+`XDG_DATA_HOME` is set to `/home/bot/.kiro/share` and `KIRO_SESSION_CWD` to
+`/home/bot/.kiro/workspace`, so credential store, config, sessions, and the
+workspace all nest under the single home volume.
 
 ## Security model
 

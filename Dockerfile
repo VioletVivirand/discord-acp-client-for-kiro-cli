@@ -44,9 +44,9 @@ RUN userdel -r ubuntu 2>/dev/null || true; \
     groupadd -g "${GID}" bot 2>/dev/null || groupmod -n bot "$(getent group "${GID}" | cut -d: -f1)"; \
     useradd -m -u "${UID}" -g "${GID}" -s /bin/bash bot
 
-# Directories owned by bot: Homebrew prefix, workspace, Kiro home, app.
-RUN mkdir -p /home/linuxbrew /workspace /home/bot/.kiro /app \
-    && chown -R bot:bot /home/linuxbrew /workspace /home/bot/.kiro /app
+# Directories owned by bot: Homebrew prefix, Kiro home (with nested workspace), app.
+RUN mkdir -p /home/linuxbrew /home/bot/.kiro/workspace /app \
+    && chown -R bot:bot /home/linuxbrew /home/bot/.kiro /app
 
 USER bot
 ENV HOME=/home/bot
@@ -103,14 +103,15 @@ RUN uv sync --frozen
 # --- Runtime configuration ----------------------------------------------------
 # kiro-cli keeps settings under KIRO_HOME but its credential/session store
 # (data.sqlite3) lives in $XDG_DATA_HOME/kiro-cli. Point XDG_DATA_HOME inside
-# KIRO_HOME so a single volume persists auth + config + sessions.
+# KIRO_HOME and nest the workspace there too, so a single volume persists
+# auth + config + sessions + workspace.
 ENV KIRO_HOME=/home/bot/.kiro \
     XDG_DATA_HOME=/home/bot/.kiro/share \
-    KIRO_SESSION_CWD=/workspace \
+    KIRO_SESSION_CWD=/home/bot/.kiro/workspace \
     KIRO_CLI_BIN=kiro-cli \
     LOG_FILE=/home/bot/.kiro/bot.log
 
-# Persisted: Kiro auth/config/sessions and the isolated workspace.
-VOLUME ["/home/bot/.kiro", "/workspace"]
+# Persisted: Kiro auth/config/sessions and the nested workspace (single volume).
+VOLUME ["/home/bot/.kiro"]
 
 CMD ["uv", "run", "--no-sync", "discord-acp-kiro-bot"]
