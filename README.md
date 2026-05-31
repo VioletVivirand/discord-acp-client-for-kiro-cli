@@ -80,6 +80,26 @@ uv run discord-acp-kiro-bot
 uv run pytest
 ```
 
+## Docker
+
+Run the bot in an isolated, non-root container with `kiro-cli`, a uv-managed
+Python 3.14, and Homebrew bundled in (so agents can install packages without
+root). Kiro auth and the working directory persist on named volumes.
+
+```bash
+cp .env.example .env   # set DISCORD_TOKEN
+docker build -t discord-acp-kiro:latest .
+docker volume create kiro-acp-data
+docker run -d --name discord-acp-kiro --env-file .env \
+    --restart unless-stopped --security-opt no-new-privileges --cap-drop ALL \
+    -v kiro-acp-data:/home/bot/.kiro \
+    discord-acp-kiro:latest
+docker exec -it discord-acp-kiro kiro-cli login   # one-time device-flow auth
+```
+
+See [docs/docker.md](docs/docker.md) for authentication, package management,
+persistence, and the security model.
+
 ## Authentication
 
 Kiro must be authenticated on the **host** running the bot. The bot does not perform

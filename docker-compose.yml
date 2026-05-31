@@ -1,0 +1,21 @@
+# Compose wrapper for the bot image. Usage:
+#   cp .env.example .env            # set DISCORD_TOKEN
+#   docker compose build
+#   docker compose up -d
+#   docker compose exec bot kiro-cli login   # one-time Kiro auth
+services:
+  bot:
+    build: .
+    image: discord-acp-kiro:latest
+    container_name: discord-acp-kiro
+    env_file: .env
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    volumes:
+      - kiro-acp-data:/home/bot/.kiro
+
+volumes:
+  kiro-acp-data:
