@@ -116,6 +116,59 @@ The image ships two package managers:
   packages by editing the `apt-get install` line in the `Dockerfile` and
   rebuilding.
 
+## Using a custom agent
+
+To launch the bot's Kiro sessions with a [custom agent](../README.md#custom-agents-assigning-tools)
+(e.g. the all-tools `examples/agents/general.json`), drop the agent file onto the
+volume and point the bot at it. Because `~/.kiro` is the persistent volume, the
+agent survives restarts and container recreation just like your Kiro auth.
+
+```bash
+# 1. Create the global agents dir (runs as the bot user, so ownership is correct)
+docker exec discord-acp-kiro-bot mkdir -p /home/bot/.kiro/agents
+
+# 2. Copy the agent from the repo into the volume
+docker cp examples/agents/general.json \
+    discord-acp-kiro-bot:/home/bot/.kiro/agents/general.json
+
+# 3. (optional) Confirm Kiro can resolve it
+docker exec discord-acp-kiro-bot kiro-cli acp --agent general   # Ctrl-C once it starts cleanly
+```
+
+Then set the agent in `.env`:
+
+```dotenv
+KIRO_AGENT=general
+```
+
+Finally **recreate** the container so the new env is picked up — `--env-file` is
+read at creation time, so a plain `docker restart` is not enough:
+
+```bash
+docker rm -f discord-acp-kiro-bot
+docker run -d \
+    --name discord-acp-kiro-bot \
+    --env-file .env \
+    --restart unless-stopped \
+    --security-opt no-new-privileges \
+    --cap-drop ALL \
+    -v discord-acp-kiro-data:/home/bot/.kiro \
+    discord-acp-kiro-bot:latest
+# or with compose (which recreates on env change automatically):
+#   docker compose up -d
+```
+
+> **Notes:**
+> - The copied file is owned by the host UID, not `bot`, but it's world-readable
+>   (mode 644) so `bot` can read it. Avoid `chown` here — `--cap-drop ALL` strips
+>   `CAP_CHOWN`, so it would fail even as root.
+> - `general.json` uses `allowedTools: ["@builtin"]`, which auto-approves `shell`
+>   and `write` inside the container. The container isolation is the boundary —
+>   keep the bot private and only in trusted channels (see [Security model](#security-model)).
+> - If `KIRO_MODEL` is set in `.env` (default `auto`), it overrides the agent's
+>   own `model` via `session/set_model`. Leave `KIRO_MODEL` unset to honor the
+>   agent's `"model"`.
+
 ## Persistence
 
 One named volume holds everything:
