@@ -15,7 +15,7 @@ services:
     cap_drop:
       - ALL
     volumes:
-      - kiro-acp-data:/home/bot/.kiro
+      - discord-acp-kiro-data:/home/bot/.kiro
 
 volumes:
-  kiro-acp-data:
+  discord-acp-kiro-data:
