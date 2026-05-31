@@ -53,7 +53,7 @@ docker run -d \
 **5. Authenticate Kiro** (one-time, see [below](#authentication-one-time-persists-on-a-volume)):
 
 ```bash
-docker exec -it discord-acp-kiro kiro-cli login
+docker exec -it discord-acp-kiro kiro-cli login --use-device-flow
 ```
 
 **6. Follow the logs:**
@@ -81,7 +81,7 @@ Use the **device flow** — it shows a URL and a one-time code; no browser is
 needed inside the container:
 
 ```bash
-docker exec -it discord-acp-kiro kiro-cli login
+docker exec -it discord-acp-kiro kiro-cli login --use-device-flow
 ```
 
 1. Pick a sign-in method (Builder ID, Google, GitHub, or your organization).
@@ -155,10 +155,10 @@ For multi-architecture builds, `docker buildx` sets `TARGETARCH` automatically
 `docker-compose.yml` wraps the same image, volumes, and security options:
 
 ```bash
-cp .env.example .env                       # set DISCORD_TOKEN
+cp .env.example .env                                        # set DISCORD_TOKEN
 docker compose build
 docker compose up -d
-docker compose exec bot kiro-cli login     # one-time Kiro auth
+docker compose exec bot kiro-cli login --use-device-flow    # one-time Kiro auth
 docker compose logs -f
-docker compose down                        # stop & remove
+docker compose down                                         # stop & remove
 ```
