@@ -11,4 +11,4 @@ def test_package_imports():
 def test_console_script_registered():
     eps = importlib.metadata.entry_points(group="console_scripts")
     names = {ep.name for ep in eps}
-    assert "discord-acp-kiro-bot" in names
+    assert "discord-acp-kiro-bot-bot" in names

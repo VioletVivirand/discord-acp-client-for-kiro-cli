@@ -28,7 +28,7 @@ cp .env.example .env          # set DISCORD_TOKEN
 **2. Build the image:**
 
 ```bash
-docker build -t discord-acp-kiro:latest .
+docker build -t discord-acp-kiro-bot:latest .
 ```
 
 **3. Create the named volume** (auth/config/sessions + workspace):
@@ -41,35 +41,35 @@ docker volume create discord-acp-kiro-data
 
 ```bash
 docker run -d \
-    --name discord-acp-kiro \
+    --name discord-acp-kiro-bot \
     --env-file .env \
     --restart unless-stopped \
     --security-opt no-new-privileges \
     --cap-drop ALL \
     -v discord-acp-kiro-data:/home/bot/.kiro \
-    discord-acp-kiro:latest
+    discord-acp-kiro-bot:latest
 ```
 
 **5. Authenticate Kiro** (one-time, see [below](#authentication-one-time-persists-on-a-volume)):
 
 ```bash
-docker exec -it discord-acp-kiro kiro-cli login --use-device-flow
+docker exec -it discord-acp-kiro-bot kiro-cli login --use-device-flow
 ```
 
 **6. Follow the logs:**
 
 ```bash
-docker logs -f discord-acp-kiro
+docker logs -f discord-acp-kiro-bot
 ```
 
 ### Managing the container
 
 ```bash
-docker exec -it discord-acp-kiro bash -l   # interactive shell
-docker stop discord-acp-kiro               # stop
-docker start discord-acp-kiro              # start again
-docker restart discord-acp-kiro            # restart
-docker rm -f discord-acp-kiro              # remove
+docker exec -it discord-acp-kiro-bot bash -l   # interactive shell
+docker stop discord-acp-kiro-bot               # stop
+docker start discord-acp-kiro-bot              # start again
+docker restart discord-acp-kiro-bot            # restart
+docker rm -f discord-acp-kiro-bot              # remove
 ```
 
 ## Authentication (one-time, persists on a volume)
@@ -81,7 +81,7 @@ Use the **device flow** — it shows a URL and a one-time code; no browser is
 needed inside the container:
 
 ```bash
-docker exec -it discord-acp-kiro kiro-cli login --use-device-flow
+docker exec -it discord-acp-kiro-bot kiro-cli login --use-device-flow
 ```
 
 1. Pick a sign-in method (Builder ID, Google, GitHub, or your organization).
@@ -106,7 +106,7 @@ The image ships two package managers:
 
 - **Homebrew** (no sudo) — preferred for the runtime user and agents:
   ```bash
-  docker exec -it discord-acp-kiro bash -l
+  docker exec -it discord-acp-kiro-bot bash -l
   brew install ripgrep jq
   ```
   Brew packages persist only for the container's lifetime (they live outside the
@@ -144,7 +144,7 @@ workspace all nest under the single home volume.
 
 ```bash
 docker build --build-arg UID=1001 --build-arg GID=1001 \
-             --build-arg PYTHON_VERSION=3.14 -t discord-acp-kiro:latest .
+             --build-arg PYTHON_VERSION=3.14 -t discord-acp-kiro-bot:latest .
 ```
 
 For multi-architecture builds, `docker buildx` sets `TARGETARCH` automatically

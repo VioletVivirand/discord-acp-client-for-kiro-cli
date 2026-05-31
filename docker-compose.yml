@@ -6,8 +6,8 @@
 services:
   bot:
     build: .
-    image: discord-acp-kiro:latest
-    container_name: discord-acp-kiro
+    image: discord-acp-kiro-bot:latest
+    container_name: discord-acp-kiro-bot
     env_file: .env
     restart: unless-stopped
     security_opt:
