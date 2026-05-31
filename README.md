@@ -66,6 +66,62 @@ Copy `.env.example` to `.env` and fill in the values:
    - Copy the **Generated URL** at the bottom of the page and open it in your browser.
    - In the authorization prompt, select the server you want to add the bot to (you must have the **Manage Server** permission on it), then click **Authorize** and complete any CAPTCHA. The bot now appears in your server's member list and is ready to receive messages.
 
+## Custom agents (assigning tools)
+
+The simplest way to grant the bot's Kiro sessions more tools is a [custom agent](https://kiro.dev/docs/cli/custom-agents/): a JSON config that declares the agent's tools, pre-approvals, and persona. The bot already supports this via the `KIRO_AGENT` env var, which is passed through as `kiro-cli acp --agent <name>` — no code changes needed.
+
+An example "all tools" agent ships in [`examples/agents/general.json`](examples/agents/general.json):
+
+```json
+{
+  "name": "general",
+  "description": "General-purpose agent with all tools available, pre-approved for non-interactive use by the Discord ACP bot.",
+  "prompt": "You are a general-purpose coding and operations assistant running non-interactively via the Discord ACP bot. There is no human at the terminal to answer tool-approval prompts, so act decisively. Be cautious with destructive or irreversible operations.",
+  "tools": ["*"],
+  "allowedTools": ["@builtin"],
+  "model": "auto"
+}
+```
+
+Two key points about the fields:
+
+- `"tools": ["*"]` makes **every** tool available (all built-ins plus any from MCP servers).
+- `allowedTools` controls what runs **without an approval prompt**. It does **not** accept `"*"`; the closest equivalent is `"@builtin"`, which pre-approves all built-in tools. This matters because the bot drives Kiro non-interactively — there is no terminal to answer prompts, so any tool *not* in `allowedTools` will stall the turn (tool-call approval in Discord is still a future improvement). To also auto-approve MCP tools, add server patterns like `"@my-server"` or `"@*"`.
+
+> **Security note:** `"@builtin"` auto-approves `shell` and `write`, so a remotely-driven agent can run arbitrary commands and modify any file your user account can reach (including everything under `~/.kiro`). Since this bot exposes Kiro through Discord, only enable this if you trust everyone who can message the bot, and prefer running it inside the Docker sandbox (see [docs/docker.md](docs/docker.md)). To tighten it, scope writes with `toolsSettings.write.allowedPaths` and shell with `toolsSettings.shell.allowedCommands`/`deniedCommands`.
+
+### Launching the bot with the agent
+
+1. Install the agent so `kiro-cli` can resolve it by name. Either globally (available everywhere):
+
+   ```bash
+   mkdir -p ~/.kiro/agents
+   cp examples/agents/general.json ~/.kiro/agents/
+   ```
+
+   or per-workspace, inside your `KIRO_SESSION_CWD` (local agents take precedence over global ones with the same name):
+
+   ```bash
+   mkdir -p "$KIRO_SESSION_CWD/.kiro/agents"
+   cp examples/agents/general.json "$KIRO_SESSION_CWD/.kiro/agents/"
+   ```
+
+2. Point the bot at it in `.env`:
+
+   ```bash
+   KIRO_AGENT=general
+   ```
+
+3. (Optional) Verify the agent is discoverable before starting the bot:
+
+   ```bash
+   kiro-cli acp --agent general   # Ctrl-C once it starts cleanly
+   ```
+
+4. Start the bot as usual (`uv run discord-acp-kiro-bot`). New threads now launch sessions with the `general` agent.
+
+> Remember the model-precedence rule above: if `KIRO_MODEL` is set, it overrides the agent's `model` via `session/set_model`. Leave `KIRO_MODEL` unset to honor the agent's own `"model"`.
+
 ## Run
 
 ```bash
