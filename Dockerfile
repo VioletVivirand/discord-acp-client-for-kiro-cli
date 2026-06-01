@@ -69,6 +69,9 @@ RUN echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/bot/.
     && echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/bot/.profile
 
 # --- kiro-cli (arch-aware zip installer -> ~/.local/bin) ----------------------
+# Mirrors the official installer (https://cli.kiro.dev/install): download the
+# stable-channel zip from the CLI CDN and verify its SHA-256 against the
+# published manifest.json before extracting.
 RUN set -eux; \
     arch="${TARGETARCH:-$(dpkg --print-architecture)}"; \
     case "$arch" in \
@@ -76,12 +79,19 @@ RUN set -eux; \
         arm64) karch=aarch64 ;; \
         *) echo "unsupported architecture: $arch" >&2; exit 1 ;; \
     esac; \
-    curl --proto '=https' --tlsv1.2 -fsSL \
-        "https://desktop-release.q.us-east-1.amazonaws.com/latest/kirocli-${karch}-linux.zip" \
-        -o /tmp/kirocli.zip; \
+    base="https://prod.download.cli.kiro.dev/stable/latest"; \
+    file="kirocli-${karch}-linux.zip"; \
+    curl --proto '=https' --tlsv1.2 -fsSL "${base}/${file}" -o /tmp/kirocli.zip; \
+    curl --proto '=https' --tlsv1.2 -fsSL "${base}/manifest.json" -o /tmp/manifest.json; \
+    expected="$(tr -d '\n\r' < /tmp/manifest.json \
+        | grep -o "{[^}]*${file}\"[^}]*}" \
+        | grep -o '"sha256"[[:space:]]*:[[:space:]]*"[a-f0-9]\{64\}"' \
+        | grep -o '[a-f0-9]\{64\}')"; \
+    [ -n "$expected" ] || { echo "checksum for ${file} not found in manifest" >&2; exit 1; }; \
+    echo "${expected}  /tmp/kirocli.zip" | sha256sum -c -; \
     unzip -q /tmp/kirocli.zip -d /tmp; \
     /tmp/kirocli/install.sh --no-confirm; \
-    rm -rf /tmp/kirocli /tmp/kirocli.zip; \
+    rm -rf /tmp/kirocli /tmp/kirocli.zip /tmp/manifest.json; \
     kiro-cli --version
 
 # --- Python dependencies (uv-managed Python 3.14) -----------------------------
