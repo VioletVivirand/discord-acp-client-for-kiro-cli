@@ -54,17 +54,20 @@ Copy `.env.example` to `.env` and fill in the values:
 1. Sign in to the [Discord Developer Portal](https://discord.com/developers/applications) and click **New Application**. Give it a name and confirm — this creates the application that will host your bot.
 2. Open the **Bot** tab for the application and add a bot user if one is not created automatically. Then scroll to **Privileged Gateway Intents** and enable the **Message Content Intent**. This is required so the bot can read the text of your messages and forward them to Kiro; without it the bot only sees empty message content.
    - In **Bot → Authorization Flow**, disable the **Public Bot** option so that only you can invite the bot. Since this bot drives Kiro CLI on your host, you don't want anyone else adding it to their servers.
-   - Discord won't let you disable **Public Bot** while an install link is configured. First go to **Installation** and set **Install Link** to **None**, save, then return and disable **Public Bot**. Otherwise Discord rejects the change with a "private app cannot have install fields" error.
-3. Generate an invite link and use it to add the bot to your server:
-   - Go to the **OAuth2 → URL Generator** tab.
-   - Under **Scopes**, check **`bot`**.
-   - A **Bot Permissions** panel appears below. Check the following permissions:
-     - Send Messages
-     - Create Public Threads
-     - Send Messages in Threads
-     - Read Message History
-   - Copy the **Generated URL** at the bottom of the page and open it in your browser.
-   - In the authorization prompt, select the server you want to add the bot to (you must have the **Manage Server** permission on it), then click **Authorize** and complete any CAPTCHA. The bot now appears in your server's member list and is ready to receive messages.
+     - Discord won't let you disable **Public Bot** while an install link is configured. First go to **Installation** and set **Install Link** to **None**, save, then return and disable **Public Bot**. Otherwise Discord rejects the change with a "private app cannot have install fields" error.
+3. Create client secret token and generate an invite link and use it to add the bot to your server:
+   - Go to the **OAuth2 → Client Information** section.
+     - Under **Client Secret**, click **Reset Secret** to generate a token.
+     - Fill in `DISCORD_TOKEN` with the token in `.env`.
+   - Go to the **OAuth2 → URL Generator** section.
+     - Under **Scopes**, check **`bot`**.
+     - A **Bot Permissions** panel appears below. Check the following permissions:
+       - Send Messages
+       - Create Public Threads
+       - Send Messages in Threads
+       - Read Message History
+     - Copy the **Generated URL** at the bottom of the page and open it in your browser.
+     - In the authorization prompt, select the server you want to add the bot to (you must have the **Manage Server** permission on it), then click **Authorize** and complete any CAPTCHA. The bot now appears in your server's member list and is ready to receive messages.
 
 ## Custom agents (assigning tools)
 
