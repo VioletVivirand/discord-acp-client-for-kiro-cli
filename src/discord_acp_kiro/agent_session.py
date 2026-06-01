@@ -11,6 +11,11 @@ from .acp_client import JsonRpcClient, JsonRpcError
 
 logger = logging.getLogger(__name__)
 
+# asyncio's default StreamReader limit is 64 KiB; a single NDJSON line from
+# kiro-cli acp (large tool result or message chunk) can exceed that and kill
+# the read loop. Raise it well above any realistic line size.
+_STREAM_LIMIT = 64 * 1024 * 1024
+
 
 class SessionNotFound(Exception):
     pass
@@ -49,6 +54,7 @@ class AgentSession:
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+            limit=_STREAM_LIMIT,
         )
         asyncio.create_task(self._drain_stderr(self._proc.stderr))
         self._attach_client(self._proc.stdout, self._proc.stdin)
