@@ -76,13 +76,13 @@ Copy `.env.example` to `.env` and fill in the values:
 
 The simplest way to grant the bot's Kiro sessions more tools is a [custom agent](https://kiro.dev/docs/cli/custom-agents/): a JSON config that declares the agent's tools, pre-approvals, and persona. The bot already supports this via the `KIRO_AGENT` env var, which is passed through as `kiro-cli acp --agent <name>` — no code changes needed.
 
-An example "all tools" agent ships in [`examples/agents/general.json`](examples/agents/general.json):
+An example "all tools" agent ships in [`examples/agents/powerful-sandbox.json`](examples/agents/powerful-sandbox.json):
 
 ```json
 {
-  "name": "general",
+  "name": "powerful-sandbox",
   "description": "General-purpose agent with all tools available, pre-approved for non-interactive use by the Discord ACP bot.",
-  "prompt": "You are a general-purpose coding and operations assistant running non-interactively via the Discord ACP bot. There is no human at the terminal to answer tool-approval prompts, so act decisively. Be cautious with destructive or irreversible operations.",
+  "prompt": "You are a general-purpose coding and operations assistant running non-interactively via the Discord ACP bot. There is no human at the terminal to answer tool-approval prompts, so act decisively. Be cautious with destructive or irreversible operations. You run inside a non-root sandbox environment with no sudo: install any missing CLI tools or packages with Homebrew (`brew install <pkg>`), never `apt`/`sudo`.",
   "tools": ["*"],
   "allowedTools": ["@builtin"],
   "model": "auto"
@@ -102,29 +102,29 @@ Two key points about the fields:
 
    ```bash
    mkdir -p ~/.kiro/agents
-   cp examples/agents/general.json ~/.kiro/agents/
+   cp examples/agents/powerful-sandbox.json ~/.kiro/agents/
    ```
 
    or per-workspace, inside your `KIRO_SESSION_CWD` (local agents take precedence over global ones with the same name):
 
    ```bash
    mkdir -p "$KIRO_SESSION_CWD/.kiro/agents"
-   cp examples/agents/general.json "$KIRO_SESSION_CWD/.kiro/agents/"
+   cp examples/agents/powerful-sandbox.json "$KIRO_SESSION_CWD/.kiro/agents/"
    ```
 
 2. Point the bot at it in `.env`:
 
    ```bash
-   KIRO_AGENT=general
+   KIRO_AGENT=powerful-sandbox
    ```
 
 3. (Optional) Verify the agent is discoverable before starting the bot:
 
    ```bash
-   kiro-cli acp --agent general   # Ctrl-C once it starts cleanly
+   kiro-cli acp --agent powerful-sandbox   # Ctrl-C once it starts cleanly
    ```
 
-4. Start the bot as usual (`uv run discord-acp-kiro-bot`). New threads now launch sessions with the `general` agent.
+4. Start the bot as usual (`uv run discord-acp-kiro-bot`). New threads now launch sessions with the `powerful-sandbox` agent.
 
 > Remember the model-precedence rule above: if `KIRO_MODEL` is set, it overrides the agent's `model` via `session/set_model`. Leave `KIRO_MODEL` unset to honor the agent's own `"model"`.
 

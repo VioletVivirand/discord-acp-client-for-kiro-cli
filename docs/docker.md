@@ -119,7 +119,7 @@ The image ships two package managers:
 ## Using a custom agent
 
 To launch the bot's Kiro sessions with a [custom agent](../README.md#custom-agents-assigning-tools)
-(e.g. the all-tools `examples/agents/general.json`), drop the agent file onto the
+(e.g. the all-tools `examples/agents/powerful-sandbox.json`), drop the agent file onto the
 volume and point the bot at it. Because `~/.kiro` is the persistent volume, the
 agent survives restarts and container recreation just like your Kiro auth.
 
@@ -128,17 +128,17 @@ agent survives restarts and container recreation just like your Kiro auth.
 docker exec discord-acp-kiro-bot mkdir -p /home/bot/.kiro/agents
 
 # 2. Copy the agent from the repo into the volume
-docker cp examples/agents/general.json \
-    discord-acp-kiro-bot:/home/bot/.kiro/agents/general.json
+docker cp examples/agents/powerful-sandbox.json \
+    discord-acp-kiro-bot:/home/bot/.kiro/agents/powerful-sandbox.json
 
 # 3. (optional) Confirm Kiro can resolve it
-docker exec discord-acp-kiro-bot kiro-cli acp --agent general   # Ctrl-C once it starts cleanly
+docker exec discord-acp-kiro-bot kiro-cli acp --agent powerful-sandbox   # Ctrl-C once it starts cleanly
 ```
 
 Then set the agent in `.env`:
 
 ```dotenv
-KIRO_AGENT=general
+KIRO_AGENT=powerful-sandbox
 ```
 
 Finally **recreate** the container so the new env is picked up — `--env-file` is
@@ -162,7 +162,7 @@ docker run -d \
 > - The copied file is owned by the host UID, not `bot`, but it's world-readable
 >   (mode 644) so `bot` can read it. Avoid `chown` here — `--cap-drop ALL` strips
 >   `CAP_CHOWN`, so it would fail even as root.
-> - `general.json` uses `allowedTools: ["@builtin"]`, which auto-approves `shell`
+> - `powerful-sandbox.json` uses `allowedTools: ["@builtin"]`, which auto-approves `shell`
 >   and `write` inside the container. The container isolation is the boundary —
 >   keep the bot private and only in trusted channels (see [Security model](#security-model)).
 > - If `KIRO_MODEL` is set in `.env` (default `auto`), it overrides the agent's

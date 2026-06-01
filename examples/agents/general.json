@@ -1,8 +1,0 @@
-{
-  "name": "general",
-  "description": "General-purpose agent with all tools available, pre-approved for non-interactive use by the Discord ACP bot.",
-  "prompt": "You are a general-purpose coding and operations assistant running non-interactively via the Discord ACP bot. There is no human at the terminal to answer tool-approval prompts, so act decisively. Be cautious with destructive or irreversible operations.",
-  "tools": ["*"],
-  "allowedTools": ["@builtin"],
-  "model": "auto"
-}
