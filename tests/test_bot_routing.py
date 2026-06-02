@@ -22,8 +22,10 @@ def bot():
     return b
 
 
-def _message(channel_cls, *, author_is_bot=False, is_self=False, bot_user=None):
+def _message(channel_cls, *, author_is_bot=False, is_self=False, bot_user=None,
+             msg_type=discord.MessageType.default):
     msg = MagicMock(spec=discord.Message)
+    msg.type = msg_type
     msg.channel = MagicMock(spec=channel_cls)
     msg.channel.send = AsyncMock()
     author = MagicMock()
@@ -71,6 +73,14 @@ async def test_thread_handled(bot, monkeypatch):
     msg = _message(discord.Thread)
     await bot.on_message(msg)
     handled.assert_awaited_once_with(msg)
+
+
+async def test_system_message_ignored(bot, monkeypatch):
+    handled = AsyncMock()
+    monkeypatch.setattr(bot, "_handle_authed_message", handled)
+    msg = _message(discord.TextChannel, msg_type=discord.MessageType.pins_add)
+    await bot.on_message(msg)
+    handled.assert_not_called()
 
 
 async def test_unauthed_posts_auth_view(bot, monkeypatch):

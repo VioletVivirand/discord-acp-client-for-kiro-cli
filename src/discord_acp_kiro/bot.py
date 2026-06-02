@@ -42,6 +42,8 @@ class KiroAcpBot(discord.Client):
     async def on_message(self, message: discord.Message) -> None:
         if message.author == self.user or message.author.bot:
             return
+        if message.type not in (discord.MessageType.default, discord.MessageType.reply):
+            return
         if not isinstance(message.channel, (discord.TextChannel, discord.Thread)):
             return
         if not await auth.whoami(self.config.kiro_cli_bin):
