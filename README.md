@@ -7,6 +7,12 @@ in that thread resume the same session. The bot speaks JSON-RPC 2.0 (NDJSON) ove
 the bot detects an unauthenticated host and offers a **Retry** button so you can resend
 your message once login is complete.
 
+> **Private channels only:** the bot only responds in channels that are hidden from the
+> `@everyone` role (i.e. private channels, and threads under them). Messages in public
+> channels — readable by anyone in the server — are silently ignored, so the bot never
+> drives Kiro on behalf of arbitrary users. Make any channel you want the bot to use
+> private by denying **View Channel** to `@everyone`.
+
 ## Architecture
 
 ```mermaid

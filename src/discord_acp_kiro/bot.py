@@ -17,6 +17,22 @@ from .ui import RetryView
 logger = logging.getLogger(__name__)
 
 
+def _is_private_channel(channel) -> bool:
+    """True only if the channel is hidden from the guild's @everyone role.
+
+    Threads inherit their parent channel's visibility. Returns False when
+    visibility cannot be determined (e.g. missing parent or guild).
+    """
+    if isinstance(channel, discord.Thread):
+        channel = channel.parent
+        if channel is None:
+            return False
+    try:
+        return channel.permissions_for(channel.guild.default_role).view_channel is False
+    except AttributeError:
+        return False
+
+
 class KiroAcpBot(discord.Client):
     def __init__(self, config: Config, **kwargs):
         intents = discord.Intents.default()
@@ -45,6 +61,8 @@ class KiroAcpBot(discord.Client):
         if message.type not in (discord.MessageType.default, discord.MessageType.reply):
             return
         if not isinstance(message.channel, (discord.TextChannel, discord.Thread)):
+            return
+        if not _is_private_channel(message.channel):
             return
         if not await auth.whoami(self.config.kiro_cli_bin):
             await message.channel.send(
