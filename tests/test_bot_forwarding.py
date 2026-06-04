@@ -63,8 +63,7 @@ async def test_thread_session_not_found(bot):
     msg.channel = thread
     msg.content = "x"
     await bot._handle_thread_message(msg)
-    thread.send.assert_awaited_once()
-    assert "no longer exists" in thread.send.call_args.args[0]
+    thread.send.assert_not_called()
     bot.agent_manager.run_prompt.assert_not_called()
 
 

@@ -7,11 +7,15 @@ in that thread resume the same session. The bot speaks JSON-RPC 2.0 (NDJSON) ove
 the bot detects an unauthenticated host and offers a **Retry** button so you can resend
 your message once login is complete.
 
-> **Private channels only:** the bot only responds in channels that are hidden from the
-> `@everyone` role (i.e. private channels, and threads under them). Messages in public
-> channels — readable by anyone in the server — are silently ignored, so the bot never
-> drives Kiro on behalf of arbitrary users. Make any channel you want the bot to use
-> private by denying **View Channel** to `@everyone`.
+## Important Notes
+
+### Private channels only
+
+The bot only responds in channels that are hidden from the `@everyone` role (i.e. private channels, and threads under them). Messages in public channels — readable by anyone in the server — are silently ignored, so the bot never drives Kiro on behalf of arbitrary users. Make any channel you want the bot to use private by denying **View Channel** to `@everyone`.
+
+### Don't rename threads
+
+The bot resumes a conversation by matching the thread's title — which it sets to the Kiro **session UUID** — against the historical session IDs on disk. Don't edit a thread's title manually. If you do, you won't see an error while the bot still has the session cached in memory (it's keyed by the thread ID, not the title, so live sessions keep working). But once that cache is dropped — after the idle timeout (set the timeout by modify `KIRO_IDLE_TIMEOUT_SECONDS`, default is 300s) reaps the subprocess or the bot restarts — the bot can no longer match the renamed title to a session, so it can't resume that conversation and silently ignores messages in the thread.
 
 ## Architecture
 

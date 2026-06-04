@@ -93,7 +93,7 @@ class AgentSession:
         try:
             await self._client.request("session/load", {"sessionId": session_id, "cwd": cwd, "mcpServers": []})
         except JsonRpcError as exc:
-            if "not found" in exc.message.lower():
+            if "not found" in f"{exc.message} {exc.data}".lower():
                 raise SessionNotFound(session_id) from exc
             raise
         self.session_id = session_id

@@ -106,9 +106,9 @@ class KiroAcpBot(discord.Client):
                 thread.id, existing_session_id=thread.name
             )
         except SessionNotFound:
-            await thread.send(
-                "Kiro session no longer exists on disk; please start a new "
-                "conversation in a regular channel."
+            logger.info(
+                "Ignoring message in thread %s: no matching Kiro session for %r",
+                thread.id, thread.name,
             )
             return
         renderer = PromptRenderer(thread)
